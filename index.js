@@ -29,6 +29,8 @@ Gunakan command dibawah :
 
 // gempa
 fanBot.onText(gempa , async(callback) => {
+    const processingMessage = await fanBot.sendMessage(callback.from.id, "Permintaan sedang diproses...");
+    
     const BMKG_ENDPOINT = "https://data.bmkg.go.id/DataMKG/TEWS/";
     const apiCall = await fetch(BMKG_ENDPOINT + "autogempa.json");
     const {
@@ -50,18 +52,19 @@ Potensi : ${Potensi}
     fanBot.sendPhoto(callback.from.id, BMKGImage, {
         caption: resultText
     })
+    fanBot.deleteMessage(callback.from.id, processingMessage.message_id);
 });
 
 // news
 fanBot.onText(news , async(callback) => {
     const newsApiKey = process.env.NEWSAPI_KEY
     const NEWS_ENDPOINT = `https://newsapi.org/v2/top-headlines?country=id&apiKey=${newsApiKey}`;
+    const processingMessage = await fanBot.sendMessage(callback.from.id, "Permintaan sedang diproses...");
     try {
         const apiCall = await fetch(NEWS_ENDPOINT);
         const response = await apiCall.json();
         const articles = response.articles.slice(0, 3);
         
-        // Loop through the articles
         articles.forEach(article => {
             const { author, title, url } = article;
             const resultText = `
@@ -72,9 +75,10 @@ fanBot.onText(news , async(callback) => {
  `;
             fanBot.sendMessage(callback.from.id, resultText);
         });
+        fanBot.deleteMessage(callback.from.id, processingMessage.message_id);
     } catch (error) {
         console.error("Error fetching news:", error);
+        fanBot.deleteMessage(callback.from.id, processingMessage.message_id);
         fanBot.sendMessage(callback.from.id, "Maaf, terjadi kesalahan saat mengambil berita.");
     }
 });
-
